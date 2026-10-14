@@ -8,11 +8,11 @@ teams = {}
 matches = []
 
 
-def addTeam(teamName, players=None):
+def add_team(team_name, players=None):
     """Add a team to the scoreboard."""
     if players is None:
         players = []
-    teams[teamName] = {
+    teams[team_name] = {
         "played": 0,
         "won": 0,
         "drawn": 0,
@@ -23,19 +23,19 @@ def addTeam(teamName, players=None):
     }
 
 
-def matchResult(homeGoals, awayGoals):
+def match_result(home_goals, away_goals):
     """Return the result from the home team's perspective."""
-    if homeGoals > awayGoals:
+    if home_goals > away_goals:
         return "home"
-    if homeGoals < awayGoals:
+    if home_goals < away_goals:
         return "away"
     return "draw"
 
 
-def recordMatch(home, away, homeGoals, awayGoals):
+def record_match(home, away, home_goals, away_goals):
     """Record a match and update both teams' statistics."""
-    result = matchResult(homeGoals, awayGoals)
-    sides = ((home, homeGoals, awayGoals), (away, awayGoals, homeGoals))
+    result = match_result(home_goals, away_goals)
+    sides = ((home, home_goals, away_goals), (away, away_goals, home_goals))
     for team, scored, conceded in sides:
         teams[team]["played"] += 1
         teams[team]["gf"] += scored
@@ -47,45 +47,44 @@ def recordMatch(home, away, homeGoals, awayGoals):
         winner, loser = (home, away) if result == "home" else (away, home)
         teams[winner]["won"] += 1
         teams[loser]["lost"] += 1
-    matches.append((home, away, homeGoals, awayGoals))
+    matches.append((home, away, home_goals, away_goals))
 
 
-def points(teamName):
+def points(team_name):
     """Calculate a team's league points."""
-    stats = teams[teamName]
+    stats = teams[team_name]
     return stats["won"] * POINTS["win"] + stats["drawn"] * POINTS["draw"]
 
 
-def goalDifference(teamName):
+def goal_difference(team_name):
     """Calculate a team's goal difference."""
-    return teams[teamName]["gf"] - teams[teamName]["ga"]
+    return teams[team_name]["gf"] - teams[team_name]["ga"]
 
 
-def leagueTable():
+def league_table():
     """Return teams ordered by points and goal difference."""
-    return sorted(teams, key=lambda t: (points(t), goalDifference(t)), reverse=True)
+    return sorted(teams, key=lambda t: (points(t), goal_difference(t)), reverse=True)
 
 
-def isTopTwo(teamName):
+def is_top_two(team_name):
     """Check whether a team is in the top two."""
-    table = leagueTable()
-    return teamName in table[:2]
+    table = league_table()
+    return team_name in table[:2]
 
 
-def tossCoin():
+def toss_coin():
     """Simulate a coin toss."""
     return secrets.choice(["Heads", "Tails"])
 
 
-def tableFilePath():
+def table_file_path():
     """Create a securely named temporary file."""
-    temporary_file = tempfile.NamedTemporaryFile(
+    with tempfile.NamedTemporaryFile(
         suffix=".json", delete=False
-    )
-    temporary_file.close()
-    return temporary_file.name
+    ) as temporary_file:
+        return temporary_file.name
 
-def publishTable(server):
+def publish_table(server):
     """Return the intended publication destination."""
     return f"{server}:/var/www/"
 
@@ -93,15 +92,15 @@ def publishTable(server):
 def main():
     """Run the tournament scoreboard demonstration."""
     for name in ["Royal Strikers", "City Rovers", "Lake United"]:
-        addTeam(name)
-    addTeam("Hill Warriors")
-    print("Toss:", tossCoin())
-    recordMatch("Royal Strikers", "City Rovers", 2, 1)
-    recordMatch("Lake United", "Hill Warriors", 0, 0)
-    recordMatch("City Rovers", "Lake United", 3, 2)
-    recordMatch("Hill Warriors", "Royal Strikers", 1, 1)
+        add_team(name)
+    add_team("Hill Warriors")
+    print("Toss:", toss_coin())
+    record_match("Royal Strikers", "City Rovers", 2, 1)
+    record_match("Lake United", "Hill Warriors", 0, 0)
+    record_match("City Rovers", "Lake United", 3, 2)
+    record_match("Hill Warriors", "Royal Strikers", 1, 1)
     print("Pos Team Played Won Drawn Lost Pts")
-    for pos, name in enumerate(leagueTable(), 1):
+    for pos, name in enumerate(league_table(), 1):
         stats = teams[name]
         print(
             pos,
@@ -112,7 +111,7 @@ def main():
             stats["lost"],
             points(name),
         )
-    print("Is City Rovers in the top two?", isTopTwo("City Rovers"))
+    print("Is City Rovers in the top two?", is_top_two("City Rovers"))
     print("Matches played:", len(matches))
 
 
