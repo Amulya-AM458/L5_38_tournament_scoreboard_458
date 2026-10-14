@@ -63,7 +63,11 @@ def goal_difference(team_name):
 
 def league_table():
     """Return teams ordered by points and goal difference."""
-    return sorted(teams, key=lambda t: (points(t), goal_difference(t)), reverse=True)
+    return sorted(
+        teams,
+        key=lambda t: (points(t), goal_difference(t)),
+        reverse=True,
+    )
 
 
 def is_top_two(team_name):
@@ -83,6 +87,7 @@ def table_file_path():
         suffix=".json", delete=False
     ) as temporary_file:
         return temporary_file.name
+
 
 def publish_table(server):
     """Return the intended publication destination."""
